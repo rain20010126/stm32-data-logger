@@ -1,0 +1,3 @@
+[submodule "embedded-data-logger"]
+	path = embedded-data-logger
+	url = https://github.com/rain20010126/embedded-data-logger
