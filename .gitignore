@@ -1,0 +1,21 @@
+# build output
+build/
+*.o
+*.elf
+*.bin
+*.map
+
+# temp files
+*.log
+*.tmp
+*.swp
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+
+# STM32CubeIDE
+Debug/
+Release/
