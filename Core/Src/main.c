@@ -21,6 +21,12 @@
 #include "usart.h"
 #include "gpio.h"
 
+#include <string.h> 
+
+#include "ring_buffer.h"
+#include "logger.h"
+#include "temp_sensor.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -49,8 +55,15 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-/* USER CODE BEGIN PFP */
 
+/* USER CODE BEGIN PFP */
+void uart_output(const char *str)
+{
+    HAL_UART_Transmit(&huart2,
+                      (uint8_t*)str,
+                      strlen(str),
+                      HAL_MAX_DELAY);
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -88,8 +101,14 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  /* USER CODE BEGIN 2 */
 
+  /* USER CODE BEGIN 2 */
+  logger_t logger;
+  ring_buffer_t rb;
+
+  rb_init(&rb, 10);
+
+  logger_init(&logger, &rb, uart_output);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -97,9 +116,25 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    char msg[] = "Hello STM32!\r\n";
-    HAL_UART_Transmit(&huart2, (uint8_t*)msg, sizeof(msg) - 1, HAL_MAX_DELAY);
-    HAL_Delay(1000);  // 1 second delay
+    log_data_t log;
+
+    // 1. read sensor
+    if (sensor_read(&log.sensor) != 0)
+    {
+        // optional: error handling
+        continue;
+    }
+
+    // 2. add timestamp（只做一次）
+    log.timestamp = HAL_GetTick();
+
+    // 3. push to buffer
+    rb_push(&rb, log);
+
+    // 4. process logger
+    logger_process(&logger); 
+
+    HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

@@ -59,6 +59,12 @@ Core/Src/system_stm32f4xx.c \
 Core/Src/sysmem.c \
 Core/Src/syscalls.c  
 
+
+C_SOURCES += \
+embedded-data-logger/src/core/ring_buffer.c \
+embedded-data-logger/src/core/logger.c \
+embedded-data-logger/src/sensor/temp_sensor.c
+
 # ASM sources
 ASM_SOURCES =  \
 startup_stm32f446xx.s
@@ -124,6 +130,10 @@ C_INCLUDES =  \
 -IDrivers/CMSIS/Device/ST/STM32F4xx/Include \
 -IDrivers/CMSIS/Include
 
+C_INCLUDES += \
+-Iembedded-data-logger/include \
+-Iembedded-data-logger/src/core \
+-Iembedded-data-logger/src/sensor
 
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
