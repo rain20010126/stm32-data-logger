@@ -77,67 +77,46 @@ void uart_output(const char *str)
   */
 int main(void)
 {
-
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  MX_I2C1_Init();  
 
   /* USER CODE BEGIN 2 */
+  printf("BOOT\n");
+
   logger_t logger;
   ring_buffer_t rb;
 
   rb_init(&rb, 10);
-
   logger_init(&logger, &rb, uart_output);
   /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+  if (sensor_init() != 0)
+  {
+      printf("sensor init failed\n");
+  }
+
+
   while (1)
   {
-    /* USER CODE END WHILE */
     log_data_t log;
-
-    // 1. read sensor
-    if (sensor_read(&log.sensor) != 0)
-    {
-        // optional: error handling
-        continue;
-    }
-
-    // 2. add timestamp（只做一次）
     log.timestamp = HAL_GetTick();
 
-    // 3. push to buffer
-    rb_push(&rb, log);
+    sensor_data_t sensor;
 
-    // 4. process logger
-    logger_process(&logger); 
+    if (sensor_read(&sensor) != 0)
+        continue;
+
+    log.sensor = sensor;
+
+    rb_push(&rb, log);
+    logger_process(&logger);
 
     HAL_Delay(1000);
-    /* USER CODE BEGIN 3 */
   }
-  /* USER CODE END 3 */
 }
 
 /**
@@ -188,7 +167,11 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+int _write(int file, char *ptr, int len)
+{
+    HAL_UART_Transmit(&huart2, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+    return len;
+}
 /* USER CODE END 4 */
 
 /**
