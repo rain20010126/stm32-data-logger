@@ -22,10 +22,12 @@
 #include "gpio.h"
 
 #include <string.h> 
+#include <stdio.h>
 
 #include "ring_buffer.h"
 #include "logger.h"
 #include "temp_sensor.h"
+#include "i2c.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -84,7 +86,6 @@ int main(void)
   MX_USART2_UART_Init();
   MX_I2C1_Init();  
 
-  /* USER CODE BEGIN 2 */
   printf("BOOT\n");
 
   logger_t logger;
@@ -92,7 +93,16 @@ int main(void)
 
   rb_init(&rb, 10);
   logger_init(&logger, &rb, uart_output);
-  /* USER CODE END 2 */
+
+  printf("scan...\n");
+
+  for (uint8_t addr = 1; addr < 128; addr++)
+  {
+      if (HAL_I2C_IsDeviceReady(&hi2c1, addr << 1, 1, 10) == HAL_OK)
+      {
+          printf("found device at 0x%02X\n", addr);
+      }
+  }
 
   if (sensor_init() != 0)
   {
