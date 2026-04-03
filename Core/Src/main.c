@@ -28,32 +28,7 @@
 #include "logger.h"
 #include "temp_sensor.h"
 #include "i2c.h"
-
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
+#include "i2c_driver.h"
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -127,6 +102,23 @@ int main(void)
 
     HAL_Delay(1000);
   }
+
+  // printf("before i2c\r\n");
+
+  // while (1)
+  // { 
+  //   printf("in while\r\n");
+  //   uint8_t id;
+
+  //   i2c_read_reg(0x76 << 1, 0xD0, &id, 1);
+
+  //   printf("after i2c\r\n");
+
+  //   printf("id = 0x%02X\r\n", id);
+  //   HAL_Delay(1000);
+
+  // }
+    
 }
 
 /**
