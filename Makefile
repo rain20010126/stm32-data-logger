@@ -66,7 +66,8 @@ Core/Src/syscalls.c
 C_SOURCES += \
 embedded-data-logger/src/core/ring_buffer.c \
 embedded-data-logger/src/core/logger.c \
-embedded-data-logger/src/sensor/temp_sensor.c
+embedded-data-logger/src/sensor/temp_sensor.c \
+User_Drivers/i2c_driver.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -136,7 +137,8 @@ C_INCLUDES =  \
 C_INCLUDES += \
 -Iembedded-data-logger/include \
 -Iembedded-data-logger/src/core \
--Iembedded-data-logger/src/sensor
+-Iembedded-data-logger/src/sensor\
+-IUser_Drivers
 
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
