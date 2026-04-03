@@ -79,14 +79,10 @@ int i2c_read_reg(uint8_t dev, uint8_t reg, uint8_t *buf, int len)
         }
 
         buf[i] = i2c_read_byte(i != (len - 1));
-
-        if (i == len - 1)
-        {
-            i2c_stop();   // AFTER read
-        }
     }
 
     i2c_stop();
+    I2C1->CR1 |= I2C_CR1_ACK;
 
     return 0;
 }
