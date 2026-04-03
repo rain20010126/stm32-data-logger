@@ -1,7 +1,7 @@
 #include "i2c_driver.h"
 #include "stm32f4xx.h"
+#include <stdio.h>
 
-// ===== Forward declarations =====
 static void i2c_start(void);
 static int  i2c_send_address(uint8_t addr);
 static int  i2c_write_byte(uint8_t data);
@@ -73,7 +73,17 @@ int i2c_read_reg(uint8_t dev, uint8_t reg, uint8_t *buf, int len)
 
     for (int i = 0; i < len; i++)
     {
-        buf[i] = i2c_read_byte(i != (len - 1)); // last byte → NACK
+        if (i == len - 1)
+        {
+            I2C1->CR1 &= ~I2C_CR1_ACK;  // NACK before last byte
+        }
+
+        buf[i] = i2c_read_byte(i != (len - 1));
+
+        if (i == len - 1)
+        {
+            i2c_stop();   // AFTER read
+        }
     }
 
     i2c_stop();
@@ -119,22 +129,22 @@ int i2c_write_reg(uint8_t dev, uint8_t reg, uint8_t val)
 
 static void i2c_start(void)
 {   
-    // wait until bus not busy
-    while (I2C1->SR2 & I2C_SR2_BUSY);
+    // printf("before START: SR1=0x%04lX SR2=0x%04lX\n", I2C1->SR1, I2C1->SR2);
+    uint32_t timeout = 100000;
 
-    // Generate START, SCL = HIGH, SDA: HIGH → LOW
-    // CR1: Control register 1
-    I2C1->CR1 |= I2C_CR1_START;  
+    I2C1->CR1 |= I2C_CR1_START;
 
-    // Wait for SB (Start Bit)
-    while (!(I2C1->SR1 & I2C_SR1_SB));
+    // printf("after START: SR1=0x%04lX\n", I2C1->SR1);
 
-    // Clear SB by reading SR1 (status register 1)
+    while (!(I2C1->SR1 & I2C_SR1_SB))
+    {
+        if (--timeout == 0) return;
+    }
+
     volatile uint32_t temp = I2C1->SR1;
     (void)temp;
 }
 
-// --------------------------------
 
 static int i2c_send_address(uint8_t addr)
 {

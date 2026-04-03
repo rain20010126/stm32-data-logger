@@ -59,7 +59,9 @@ int main(void)
 
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  MX_I2C1_Init();  
+  // MX_I2C1_Init();  
+
+  i2c_init();
 
   printf("BOOT\n");
 
@@ -70,14 +72,6 @@ int main(void)
   logger_init(&logger, &rb, uart_output);
 
   printf("scan...\n");
-
-  for (uint8_t addr = 1; addr < 128; addr++)
-  {
-      if (HAL_I2C_IsDeviceReady(&hi2c1, addr << 1, 1, 10) == HAL_OK)
-      {
-          printf("found device at 0x%02X\n", addr);
-      }
-  }
 
   if (sensor_init() != 0)
   {
@@ -117,8 +111,7 @@ int main(void)
   //   printf("id = 0x%02X\r\n", id);
   //   HAL_Delay(1000);
 
-  // }
-    
+  // } 
 }
 
 /**

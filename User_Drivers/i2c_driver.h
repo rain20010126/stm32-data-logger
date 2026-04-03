@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-// high-level API
+void i2c_init(void);
+
 int i2c_write_reg(uint8_t dev, uint8_t reg, uint8_t data);
 int i2c_read_reg(uint8_t dev, uint8_t reg, uint8_t *buf, int len);
 
