@@ -86,8 +86,14 @@ int main(void)
 
     sensor_data_t sensor;
 
-    if (sensor_read(&sensor) != 0)
+    // temperature must be read first (updates t_fine)
+    if (sensor_read_temperature(&sensor) != 0)
         continue;
+    
+    if (sensor_read_pressure(&sensor) != 0)
+    {
+        continue;
+    }
 
     log.sensor = sensor;
 
