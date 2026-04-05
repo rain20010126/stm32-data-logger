@@ -201,7 +201,9 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /* USER CODE BEGIN 1 */
-void I2C1_EV_IRQHandler(void)
+void i2c_ev_irq_handler(void);
+
+void I2C1_EV_IRQHandler(void) //Interrupt Request Handler
 {   
     i2c_ev_irq_handler(); 
 }
