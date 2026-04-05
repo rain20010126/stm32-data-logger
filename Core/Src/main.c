@@ -78,46 +78,51 @@ int main(void)
       printf("sensor init failed\n");
   }
 
+  
 
   while (1)
   {
     log_data_t log;
-    log.timestamp = HAL_GetTick();
-
     sensor_data_t sensor;
 
-    // temperature must be read first (updates t_fine)
+    log.timestamp = HAL_GetTick();
+
+    // =========================
+    // 1. read temperature
+    // =========================
     if (sensor_read_temperature(&sensor) != 0)
+    {
+        printf("temp read fail\n");
+        HAL_Delay(1000);
         continue;
-    
+    }
+
+    // =========================
+    // 2. read pressure
+    // =========================
     if (sensor_read_pressure(&sensor) != 0)
     {
+        printf("pressure read fail\n");
+        HAL_Delay(1000);
         continue;
     }
 
     log.sensor = sensor;
 
-    rb_push(&rb, log);
-    logger_process(&logger);
+    // =========================
+    // 3. push to buffer
+    // =========================
+    if (rb_push(&rb, log) != 0)
+    {
+        printf("rb full\n");
+    }
 
+    // =========================
+    // 4. print log
+    // =========================
+    logger_process(&logger);
     HAL_Delay(1000);
   }
-
-  // printf("before i2c\r\n");
-
-  // while (1)
-  // { 
-  //   printf("in while\r\n");
-  //   uint8_t id;
-
-  //   i2c_read_reg(0x76 << 1, 0xD0, &id, 1);
-
-  //   printf("after i2c\r\n");
-
-  //   printf("id = 0x%02X\r\n", id);
-  //   HAL_Delay(1000);
-
-  // } 
 }
 
 /**

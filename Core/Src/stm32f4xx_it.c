@@ -20,6 +20,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_it.h"
+#include <stdio.h>
+#include "i2c_driver.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -84,7 +86,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+  printf("HardFault!!!\n");
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -199,5 +201,21 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /* USER CODE BEGIN 1 */
+void I2C1_EV_IRQHandler(void)
+{   
+    i2c_ev_irq_handler(); 
+}
 
+void I2C1_ER_IRQHandler(void)
+{
+    uint32_t sr1 = I2C1->SR1;
+
+    if (sr1 & I2C_SR1_AF)
+    {
+        printf("ACK FAIL\n");
+
+        I2C1->SR1 &= ~I2C_SR1_AF;
+        I2C1->CR1 |= I2C_CR1_STOP;
+    }
+}
 /* USER CODE END 1 */
