@@ -52,6 +52,16 @@ void uart_output(const char *str)
   * @brief  The application entry point.
   * @retval int
   */
+
+volatile int done = 0;
+uint8_t buf[1];
+
+void on_done(void)
+{
+    done = 1;
+    printf("CALLBACK TRIGGERED\n");
+}
+
 int main(void)
 {
   HAL_Init();
@@ -78,51 +88,62 @@ int main(void)
       printf("sensor init failed\n");
   }
 
-  
-
   while (1)
   {
-    log_data_t log;
-    sensor_data_t sensor;
+    done = 0;
 
-    log.timestamp = HAL_GetTick();
+    i2c_read_reg_async(0x76 << 1, 0xD0, buf, 1, on_done);
 
-    // =========================
-    // 1. read temperature
-    // =========================
-    if (sensor_read_temperature(&sensor) != 0)
-    {
-        printf("temp read fail\n");
-        HAL_Delay(1000);
-        continue;
-    }
+    while (!done);
 
-    // =========================
-    // 2. read pressure
-    // =========================
-    if (sensor_read_pressure(&sensor) != 0)
-    {
-        printf("pressure read fail\n");
-        HAL_Delay(1000);
-        continue;
-    }
+    printf("chip id = 0x%02X\n", buf[0]);
 
-    log.sensor = sensor;
-
-    // =========================
-    // 3. push to buffer
-    // =========================
-    if (rb_push(&rb, log) != 0)
-    {
-        printf("rb full\n");
-    }
-
-    // =========================
-    // 4. print log
-    // =========================
-    logger_process(&logger);
     HAL_Delay(1000);
   }
+
+  // while (1)
+  // {
+  //   log_data_t log;
+  //   sensor_data_t sensor;
+
+  //   log.timestamp = HAL_GetTick();
+
+  //   // =========================
+  //   // 1. read temperature
+  //   // =========================
+  //   if (sensor_read_temperature(&sensor) != 0)
+  //   {
+  //       printf("temp read fail\n");
+  //       HAL_Delay(1000);
+  //       continue;
+  //   }
+
+  //   // =========================
+  //   // 2. read pressure
+  //   // =========================
+  //   if (sensor_read_pressure(&sensor) != 0)
+  //   {
+  //       printf("pressure read fail\n");
+  //       HAL_Delay(1000);
+  //       continue;
+  //   }
+
+  //   log.sensor = sensor;
+
+  //   // =========================
+  //   // 3. push to buffer
+  //   // =========================
+  //   if (rb_push(&rb, log) != 0)
+  //   {
+  //       printf("rb full\n");
+  //   }
+
+  //   // =========================
+  //   // 4. print log
+  //   // =========================
+  //   logger_process(&logger);
+  //   HAL_Delay(1000);
+  // }
 }
 
 /**

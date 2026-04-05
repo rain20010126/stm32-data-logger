@@ -7,8 +7,10 @@ static int  i2c_send_address(uint8_t addr);
 static int  i2c_write_byte(uint8_t data);
 static uint8_t i2c_read_byte(int ack);
 static void i2c_stop(void);
-static int i2c_write_reg_async(uint8_t dev, uint8_t reg, uint8_t val);
-static int i2c_read_reg_async(uint8_t dev, uint8_t reg, uint8_t *buf, int len);
+int i2c_write_reg_async(uint8_t dev, uint8_t reg, uint8_t val, i2c_callback_t cb);
+int i2c_read_reg_async(uint8_t dev, uint8_t reg, uint8_t *buf, int len, i2c_callback_t cb);
+
+
 
 typedef enum {
     I2C_IDLE,
@@ -42,6 +44,7 @@ typedef struct {
 } i2c_ctx_t;
 
 static i2c_ctx_t i2c;
+static i2c_callback_t i2c_cb = 0;
 
 void i2c_init(void)
 {
@@ -91,7 +94,7 @@ int i2c_read_reg(uint8_t dev, uint8_t reg, uint8_t *buf, int len)
 {   
     i2c.is_read = 1; 
 
-    if (i2c_read_reg_async(dev, reg, buf, len) != 0)
+    if (i2c_read_reg_async(dev, reg, buf, len, 0) != 0)
         return -1;
 
     while (i2c_is_busy());
@@ -104,7 +107,7 @@ int i2c_write_reg(uint8_t dev, uint8_t reg, uint8_t val)
 
     i2c.is_read = 0; 
 
-    if (i2c_write_reg_async(dev, reg, val) != 0)
+    if (i2c_write_reg_async(dev, reg, val, 0) != 0)
         return -1;
   
     while (i2c_is_busy());
@@ -219,7 +222,7 @@ int i2c_is_busy(void)
     return i2c.busy;
 }
 
-int i2c_write_reg_async(uint8_t dev, uint8_t reg, uint8_t val)
+int i2c_write_reg_async(uint8_t dev, uint8_t reg, uint8_t val, i2c_callback_t cb)
 {   
     if (i2c.busy) return -1;
 
@@ -229,7 +232,7 @@ int i2c_write_reg_async(uint8_t dev, uint8_t reg, uint8_t val)
     i2c.buf = i2c.tx_buf;
     i2c.len = 1;
     i2c.idx = 0;
-
+    i2c_cb = cb;
     i2c.state = I2C_START;
     i2c.busy = 1;
 
@@ -239,7 +242,7 @@ int i2c_write_reg_async(uint8_t dev, uint8_t reg, uint8_t val)
     return 0;
 }
 
-int i2c_read_reg_async(uint8_t dev, uint8_t reg, uint8_t *buf, int len)
+int i2c_read_reg_async(uint8_t dev, uint8_t reg, uint8_t *buf, int len, i2c_callback_t cb)
 {
     if (i2c.busy) return -1;
 
@@ -248,7 +251,7 @@ int i2c_read_reg_async(uint8_t dev, uint8_t reg, uint8_t *buf, int len)
     i2c.buf = buf;
     i2c.len = len;
     i2c.idx = 0;
-
+    i2c_cb = cb;
     i2c.state = I2C_START;
     i2c.busy = 1;
 
@@ -387,6 +390,9 @@ void i2c_ev_irq_handler(void)
                 i2c.busy = 0;
 
                 I2C1->CR1 |= I2C_CR1_ACK; // restore
+
+                if (i2c_cb)
+                    i2c_cb();
             }
         }
         break;
@@ -403,6 +409,9 @@ void i2c_ev_irq_handler(void)
             i2c.busy = 0;
 
             I2C1->CR1 |= I2C_CR1_ACK;
+
+            if (i2c_cb)
+                i2c_cb();
         }
 
         break;
